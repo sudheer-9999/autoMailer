@@ -3,6 +3,7 @@ CREATE TABLE "User" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
+    "gmailPassword" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "resume" TEXT NOT NULL,
 
@@ -13,7 +14,6 @@ CREATE TABLE "User" (
 CREATE TABLE "Application" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
-    "dateTime" TIMESTAMP(3) NOT NULL,
     "hrEmailId" TEXT NOT NULL,
     "appliedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

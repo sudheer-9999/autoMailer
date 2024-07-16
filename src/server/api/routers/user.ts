@@ -10,6 +10,7 @@ export const userRouter = createTRPCRouter({
         email: z.string(),
         password: z.string(),
         name: z.string(),
+        gmailPassword: z.string(),
         resume: z.string().optional(),
       }),
     )
@@ -27,9 +28,24 @@ export const userRouter = createTRPCRouter({
         });
       }
       const createdUser = await db.user.create({
-        data: { email, name, password: hashedPassword, resume: resume || "" },
+        data: {
+          email,
+          name,
+          password: hashedPassword,
+          resume: resume || "",
+          gmailPassword: input.gmailPassword,
+        },
       });
 
       return createdUser;
     }),
+  me: publicProcedure.query(
+    async ({ input, ctx: { db, req, res, userId } }) => {
+      const user = await db.user.findUnique({
+        where: { id: userId },
+        select: { name: true, email: true, resume: true },
+      });
+      return user;
+    },
+  ),
 });

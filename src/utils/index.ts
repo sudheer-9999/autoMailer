@@ -11,7 +11,7 @@ export const sign = (claims: object) => {
   const secret = process.env.PRIVATE_KEY!;
 
   let token = jwt.sign(claims, secret, {
-    expiresIn: "120d"
+    expiresIn: "120d",
   });
   return token;
 };

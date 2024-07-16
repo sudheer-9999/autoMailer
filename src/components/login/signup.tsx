@@ -11,11 +11,11 @@ interface Props {
   setlogin: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-// Define the Zod schema
 const signupSchema = z
   .object({
     fullname: z.string().min(1, { message: "Full name is required" }),
     email: z.string().email({ message: "Invalid email address" }),
+    gmailpassword: z.string().min(6, { message: "Gmail password is required" }),
     password: z
       .string()
       .min(6, { message: "Password must be at least 6 characters long" }),
@@ -47,6 +47,7 @@ const Signup: React.FC<Props> = ({ setlogin }) => {
       email: data.email,
       name: data.fullname,
       password: data.confirmPassword,
+      gmailPassword: data.gmailpassword,
     }).catch((e: Error) => toast.error(e.message));
   };
 
@@ -81,6 +82,15 @@ const Signup: React.FC<Props> = ({ setlogin }) => {
             type="email"
             register={register}
             errors={errors.email}
+          />
+
+          <InputField
+            id="gmailpassword"
+            label="Gmail Password"
+            name="gmailpassword"
+            type="password"
+            register={register}
+            errors={errors.gmailpassword}
           />
 
           <InputField
