@@ -1,15 +1,13 @@
 import puppeteer from "puppeteer";
+import { scrollPageToBottom } from "puppeteer-autoscroll-down";
 import { db } from "~/server/db";
 
 export const runScripts = async () => {
   // Launch the browser
   const browser = await puppeteer.launch({
     headless: false,
-    defaultViewport: null, // Disable default viewport settings
-    args: [
-      "--start-maximized", // Start browser maximized
-      "--disable-notifications", // Disable notifications
-    ],
+    defaultViewport: null,
+    args: ["--start-maximized", "--disable-notifications"],
   });
 
   const page = await browser.newPage();
@@ -28,26 +26,34 @@ export const runScripts = async () => {
 
   // Function to execute scraping for a given URL
   const scrapeLinkedIn = async (url: string, key: string) => {
-    // Navigate to the provided LinkedIn search results page
     await page.goto(url);
 
-    // Scroll to load more content
     async function scrollAndWait() {
-      let previousHeight = 0;
-      while (true) {
-        previousHeight = (await page.evaluate(
-          "document.body.scrollHeight",
-        )) as number;
-        await page.locator("div").scroll({
-          scrollLeft: 10,
-          scrollTop: previousHeight, // Scroll to the current height to load more content
-        });
+      let isLoadingAvailable = true;
+      let lastHeight = 0;
 
-        // Wait for 10 seconds after each scroll
-        await timeout(10000);
+      while (isLoadingAvailable) {
+        await scrollPageToBottom(page, { size: 5000 });
 
-        const newHeight = await page.evaluate("document.body.scrollHeight");
-        if (newHeight === previousHeight) break;
+        await new Promise((resolve) => setTimeout(resolve, 10000));
+
+        let currentHeight = await page.evaluate(
+          () => document.body.scrollHeight,
+        );
+
+        console.log(
+          "Current height:",
+          currentHeight,
+          "Last height:",
+          lastHeight,
+        );
+
+        if (currentHeight === lastHeight) {
+          isLoadingAvailable = false;
+          console.log("No new content loaded, stopping scroll.");
+        } else {
+          lastHeight = currentHeight;
+        }
       }
     }
 
