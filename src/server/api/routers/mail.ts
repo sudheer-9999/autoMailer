@@ -2,19 +2,19 @@ import { TRPCError } from "@trpc/server";
 import fs from "fs";
 import nodemailer, { TransportOptions } from "nodemailer";
 import path from "path";
-import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 export const mailRouter = createTRPCRouter({
-  register: publicProcedure
-    .input(
-      z.object({
-        hrMail: z.string(),
-        role: z.string(),
-      }),
-    )
-    .mutation(async ({ input, ctx: { db, req, res, userId } }) => {
-      const user = await db.user.findUnique({ where: { id: userId } });
+  autoApply: publicProcedure.mutation(
+    async ({ input, ctx: { db, req, res, userId } }) => {
+      const user = await db.user.findUnique({
+        where: {
+          id: userId,
+        },
+        include: {
+          applications: true,
+        },
+      });
 
       const notFoundError = new TRPCError({
         code: "NOT_FOUND",
@@ -22,6 +22,17 @@ export const mailRouter = createTRPCRouter({
       });
 
       if (!user) return notFoundError;
+
+      const jobPostings = [
+        {
+          id: "7eb0c336-61e2-4282-a290-a4e58c941154",
+          title: "reactNative",
+          hrMail: "bandarusudheer75@gmail.com",
+        },
+      ];
+
+      // const jobPostings = await db.jobPosting.findMany();
+      
 
       let transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
@@ -49,14 +60,27 @@ export const mailRouter = createTRPCRouter({
         },
       ];
 
-      try {
-        await transporter.sendMail({
-          from: user.email,
-          to: input.hrMail,
-          subject: `Application for ${input.role} Developer`,
-          text: `Dear Hr,
+      let sentCount = 0; // Initialize counter for successfully sent emails
 
-I hope this message finds you well. I am writing to express my interest in the ${input.role} developer position , as advertised linkedIn.
+      try {
+        for (const job of jobPostings) {
+          // Check if the user has already applied for this job
+          const existingApplication = user.applications.find(
+            (app) => app.jobPostingId === job.id,
+          );
+
+          // if (existingApplication) {
+          //   console.log(`User already applied for job: ${job.id}`);
+          //   continue; // Skip sending email and saving application
+          // }
+
+          await transporter.sendMail({
+            from: user.email,
+            to: job.hrMail,
+            subject: `Application for ${job.title} Developer`,
+            text: `Dear Hr,
+
+I hope this message finds you well. I am writing to express my interest in the ${job.title} developer position , as advertised linkedIn.
 
 As a self-taught Full Stack Technology Enthusiast with a strong background in developing web and mobile applications using technologies like React, React Native, Next.js, Node.js, and Express.js, I bring a proven track record of delivering high-quality projects. My experience includes integrating Strapi for content management, optimizing performance with server-side rendering, and building RESTful APIs for seamless user experiences.
 
@@ -68,24 +92,31 @@ Looking forward to the possibility of joining your team.
 
 Best regards,
 Bandaru Sudheer`,
-          attachments: attachments,
-        });
+            attachments: attachments,
+          });
 
-        await db.application.create({
-          data: {
-            hrEmailId: input.hrMail,
-            userId: user.id,
-          },
-        });
+          // Increment the counter for successfully sent emails
+          sentCount++;
 
-        return { success: true, message: "Email sent successfully" };
+          // Save application details for each job posting
+          await db.application.create({
+            data: {
+              jobPostingId: job.id,
+              userId: user.id,
+            },
+          });
+        }
+
+        return {
+          success: true,
+          message: `Emails sent successfully: ${sentCount}`,
+        };
       } catch (error: any) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: `Failed to send email: ${error.message}`,
         });
       }
-
-      return;
-    }),
+    },
+  ),
 });

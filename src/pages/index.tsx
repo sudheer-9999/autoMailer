@@ -11,15 +11,18 @@ const Home = () => {
     role: "",
   });
 
-  const { mutateAsync, isPending } = api.mail.register.useMutation({
+  const { mutateAsync, isPending } = api.mail.autoApply.useMutation({
     onSuccess: (data) => {
-      toast.success("Mail sent successfully");
+      toast.success(data.message);
       setFormData({ hrMail: "", role: "" }); // Clear inputs after successful submission
     },
     onError: (error) => {
       toast.error(error.message || "Failed to send mail");
     },
   });
+
+  const { mutateAsync: runScript, isPending: isScriptRunning } =
+    api.script.run.useMutation();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -30,12 +33,21 @@ const Home = () => {
   };
 
   const sendMail = async () => {
-    await mutateAsync({ hrMail: formData.hrMail, role: formData.role });
+    await mutateAsync();
   };
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center">
-      <div className="mb-4">
+      <div>
+        <button
+          onClick={async () => await runScript()}
+          type="button" // Ensure type is "button" for non-form buttons
+          className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+        >
+          {isScriptRunning ? <Loader /> : "RUN Script"}
+        </button>
+      </div>
+      {/* <div className="mb-4">
         <label
           htmlFor="hrMail"
           className="block text-sm font-medium leading-6 text-black"
@@ -66,14 +78,14 @@ const Home = () => {
           onChange={handleChange}
           className="block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
         />
-      </div>
-      <div>
+      </div> */}
+      <div className="mt-2">
         <button
           onClick={sendMail}
           type="button" // Ensure type is "button" for non-form buttons
           className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
         >
-          {isPending ? <Loader /> : "Send Mail"}
+          {isPending ? <Loader /> : "Send Application"}
         </button>
       </div>
     </main>

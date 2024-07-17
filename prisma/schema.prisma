@@ -24,7 +24,15 @@ model Application {
   id           String     @id @default(uuid())
   user         User       @relation(fields: [userId], references: [id])
   userId       String
-  hrEmailId    String
-  appliedAt    DateTime    @default(now())
+  appliedAt    DateTime   @default(now())
+  jobPosting   JobPosting @relation(fields: [jobPostingId], references: [id])
+  jobPostingId String        
 }
 
+model JobPosting {
+  id       String          @id @default(uuid())
+  title    String       
+  hrMail  String 
+  applications Application[]
+  @@unique([hrMail, title])
+}
