@@ -23,15 +23,9 @@ export const mailRouter = createTRPCRouter({
 
       if (!user) return notFoundError;
 
-      const jobPostings = [
-        {
-          id: "7eb0c336-61e2-4282-a290-a4e58c941154",
-          title: "reactNative",
-          hrMail: "bandarusudheer75@gmail.com",
-        },
-      ];
+      
 
-      // const jobPostings = await db.jobPosting.findMany();
+      const jobPostings = await db.jobPosting.findMany();
       
 
       let transporter = nodemailer.createTransport({
