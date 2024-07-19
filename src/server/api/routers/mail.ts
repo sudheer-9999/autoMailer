@@ -63,10 +63,10 @@ export const mailRouter = createTRPCRouter({
             (app) => app.jobPostingId === job.id,
           );
 
-          // if (existingApplication) {
-          //   console.log(`User already applied for job: ${job.id}`);
-          //   continue; // Skip sending email and saving application
-          // }
+          if (existingApplication) {
+            console.log(`User already applied for job: ${job.id}`);
+            continue; // Skip sending email and saving application
+          }
 
           await transporter.sendMail({
             from: user.email,

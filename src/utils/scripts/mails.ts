@@ -8,6 +8,7 @@ export const runScripts = async () => {
     headless: false,
     defaultViewport: null,
     args: ["--start-maximized", "--disable-notifications"],
+    executablePath: "/usr/bin/google-chrome-stable",
   });
 
   const page = await browser.newPage();
@@ -32,6 +33,8 @@ export const runScripts = async () => {
       let isLoadingAvailable = true;
       let lastHeight = 0;
 
+      let count = 0;
+
       while (isLoadingAvailable) {
         await scrollPageToBottom(page, { size: 5000 });
 
@@ -41,18 +44,13 @@ export const runScripts = async () => {
           () => document.body.scrollHeight,
         );
 
-        console.log(
-          "Current height:",
-          currentHeight,
-          "Last height:",
-          lastHeight,
-        );
-
         if (currentHeight === lastHeight) {
           isLoadingAvailable = false;
           console.log("No new content loaded, stopping scroll.");
         } else {
           lastHeight = currentHeight;
+          count += 1;
+          console.log("🚀 ~ scrollAndWait ~ count:", count);
         }
       }
     }
@@ -117,8 +115,6 @@ interface LinkedInUrls {
 const obj: LinkedInUrls = {
   reactjs:
     "https://www.linkedin.com/search/results/content/?datePosted=%22past-24h%22&keywords=reactjs%20hiring&origin=FACETED_SEARCH&sid=XP6&sortBy=%22date_posted%22",
-  reactNative:
-    "https://www.linkedin.com/search/results/content/?datePosted=%22past-24h%22&keywords=reactnative%20hiring&origin=FACETED_SEARCH&searchId=a110848e-b605-40cf-b2f6-74e774a08829&sid=IRm&sortBy=%22date_posted%22",
 };
 async function addEmailsToDatabase(emails: string[], title: string) {
   for (const email of emails) {
